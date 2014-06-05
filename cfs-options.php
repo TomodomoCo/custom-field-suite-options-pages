@@ -19,11 +19,11 @@ function create_options_pages()
 		'public' => true,
 		'has_archive' => false,
 		'menu_position' => 80,
-		'show_in_menu' => true,
+		'show_in_menu' => false,
 		'supports' => array('title'),
 		'exclude_from_search' => true,
 		'public' => false,
-		'show_ui' => true
+		'show_ui' => false
 		)
 	);
 }
@@ -37,4 +37,33 @@ function cfs_options($title=null)
 	{
 		return $page->ID;
 	}
+}
+
+function create_cfs_options()
+{
+	add_menu_page('CFS Options','CFS Options','manage_options','cfs-options','cfs_global','',80);
+	add_submenu_page('cfs-options', 'Create Options Page', 'Create New','manage_options','cfs-options-create','cfs_options_create');
+
+	$query = new WP_Query('post_type=cfs-options');
+
+	if($query->have_posts()): while($query->have_posts()): $query->the_post();
+		add_submenu_page('cfs-options', get_the_title(), get_the_title(),'manage_options','cfs-options-edit-'.get_the_ID(),'cfs_options_edit');
+	endwhile;endif;
+}
+
+add_action('admin_menu','create_cfs_options');
+
+function cfs_global()
+{
+	echo 'THE_DEFAULT_PAGE';
+}
+
+function cfs_options_create()
+{
+	echo 'CREATE OPTIONS PAGE';
+}
+
+function cfs_options_edit()
+{
+	echo 'EDIT OPTIONS PAGE';
 }
