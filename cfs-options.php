@@ -20,7 +20,7 @@ function create_options_pages()
 		'has_archive' => false,
 		'menu_position' => 80,
 		'show_in_menu' => false,
-		'supports' => array('title'),
+		'supports' => array('title','custom-fields'),
 		'exclude_from_search' => true,
 		'public' => false,
 		'show_ui' => false
@@ -41,8 +41,9 @@ function cfs_options($title=null)
 
 function create_cfs_options()
 {
-	add_menu_page('CFS Options','CFS Options','manage_options','cfs-options','cfs_global','',80);
+	add_menu_page('CFS Options','CFS Options','manage_options','cfs-options','cfs_global', '',80); //add url to icon in empty spot
 	add_submenu_page('cfs-options', 'Create Options Page', 'Create New','manage_options','cfs-options-create','cfs_options_create');
+	remove_submenu_page('cfs-options','cfs-options'); //Remove the duplicate CFS Options link.  Will not be used.
 
 	$query = new WP_Query('post_type=cfs-options&orderby=title&order=asc');
 
@@ -65,7 +66,20 @@ function cfs_options_create()
 
 function cfs_options_edit()
 {
-	echo 'EDIT OPTIONS PAGE';
+
+	global $cfs;
+
+	$cfs->form->load_assets();
+	$item = array(
+		'post_id' => str_replace('cfs-options-edit-','',$_GET['page'])
+		);
+
+	$page = get_post($item['post_id']);
+
+	echo '<div class="wrapper page wrap">';
+	echo '<h2>'.$page->post_title.'</h2>';
+	echo $cfs->form($item);
+	echo '</div>';
 }
 
 /**
@@ -96,6 +110,11 @@ function create_option_page($title, $slug)
 	}
 }
 
+/**
+ * Delete an options page with the given slug.  Only delete is the options page exists.
+ * @param  string $slug
+ * @return void
+ */
 function delete_option_page($slug)
 {
 
