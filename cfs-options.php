@@ -101,7 +101,7 @@ class CFS_Options extends Custom_Field_Suite
 	 * @param  string $slug
 	 * @return void
 	 */
-	function create_option_page($title, $slug)
+	function add_page($title, $slug)
 	{
 
 		$exists = wp_cache_get('cfs-options-'.$slug);
@@ -127,7 +127,7 @@ class CFS_Options extends Custom_Field_Suite
 	 * @param  string $slug
 	 * @return void
 	 */
-	function delete_option_page($slug)
+	function delete_page($slug)
 	{
 
 		$page = get_posts(array('name'=>$slug,'post_type'=>'cfs-options'));
@@ -155,4 +155,4 @@ class CFS_Options extends Custom_Field_Suite
 
 }
 global $cfs;
-$cfs_options = new CFS_Options($cfs);
+$cfsop = new CFS_Options($cfs);
