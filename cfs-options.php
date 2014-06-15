@@ -5,14 +5,14 @@ Plugin Name: Custom Field Suite Options Pages
 
 require_once(plugin_dir_path(__FILE__) . '../custom-field-suite/cfs.php');
 
+
 class CFS_Options extends Custom_Field_Suite
 {
 
 	public $version = '0.1';
 
-	public function __construct($cfs)
+	public function __construct()
 	{
-		$this->cfs = $cfs;
 		register_activation_hook(__FILE__, array($this, 'install'));
 		add_action('init', array($this, 'init'));
 		add_action('init', array($this, 'check_for_updates'));
@@ -21,6 +21,14 @@ class CFS_Options extends Custom_Field_Suite
 
 	public function init()
 	{
+		$this->dir = dirname( __FILE__ );
+        $this->url = plugins_url( 'cfs-options' );
+
+		$this->api = new cfs_api($this);
+        $this->form = new cfs_form($this);
+        $this->field_group = new cfs_field_group($this);
+        $this->third_party = new cfs_third_party($this);
+        $this->fields = parent::get_field_types();
 		register_post_type('cfs-options',
 			array(
 				'labels' => array(
@@ -42,7 +50,11 @@ class CFS_Options extends Custom_Field_Suite
 			'public' => false,
 			'show_ui' => false
 			)
-		);		
+		);	
+
+		if ( !is_admin() ) {
+			add_action( 'parse_query', array( $this, 'parse_query' ) );
+		}	
 	}
 
 	public function create_menu()
@@ -139,14 +151,31 @@ class CFS_Options extends Custom_Field_Suite
 	}
 
 
-	function cfs_options($title=null)
+	function cfs_options($title='options')
 	{
 		$page = get_page_by_title($title, 'OBJECT', 'cfs-options');
-		if($page !== NULL)
+		$slug = get_page_by_path($title, 'OBJECT', 'cfs-options');
+		if($page !== null)
 		{
 			return $page->ID;
 		}
+		else if($slug !== null)
+		{
+			return $slug->ID;
+		}
 	}
+
+	public function get($field_name = false, $options_page = 'options', $options = array())
+	{
+
+		$post_id = $this->cfs_options($options_page);
+
+		return parent::get($field_name, $post_id, $options);
+	}
+
+    function parse_query( $wp_query ) {
+        $wp_query->query_vars['cfsop'] = $this;
+    }
 
 	public function check_for_updates()
 	{
@@ -154,5 +183,5 @@ class CFS_Options extends Custom_Field_Suite
 	}
 
 }
-global $cfs;
+
 $cfsop = new CFS_Options($cfs);
