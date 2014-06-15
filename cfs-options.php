@@ -7,9 +7,13 @@ require_once(plugin_dir_path(__FILE__) . '../custom-field-suite/cfs.php');
 
 class CFS_Options extends Custom_Field_Suite
 {
+
+	public $version = '0.1';
+
 	public function __construct($cfs)
 	{
 		$this->cfs = $cfs;
+		register_activation_hook(__FILE__, array($this, 'install'));
 		add_action('init', array($this, 'init'));
 		add_action('init', array($this, 'check_for_updates'));
 		add_action('admin_menu', array($this, 'create_menu'));
@@ -44,7 +48,7 @@ class CFS_Options extends Custom_Field_Suite
 	public function create_menu()
 	{
 		add_menu_page('CFS Options','CFS Options','manage_options','cfs-options','cfs_global', '',80); //add url to icon in empty spot
-		add_submenu_page('cfs-options', 'Create Options Page', 'Create New','manage_options','cfs-options-create','cfs_options_create');
+		add_submenu_page('cfs-options', 'Create Options Page', 'Create New','manage_options','cfs-options-create',array($this,'options_create'));
 		remove_submenu_page('cfs-options','cfs-options'); //Remove the duplicate CFS Options link.  Will not be used.
 
 		$query = new WP_Query('post_type=cfs-options&orderby=title&order=asc');
@@ -54,7 +58,7 @@ class CFS_Options extends Custom_Field_Suite
 			while($query->have_posts())
 			{
 				$query->the_post();
-				add_submenu_page('cfs-options', get_the_title(), get_the_title(),'manage_options','cfs-options-edit-'.get_the_ID(),'cfs_options_edit');
+				add_submenu_page('cfs-options', get_the_title(), get_the_title(),'manage_options','cfs-options-edit-'.get_the_ID(), array($this, 'options_edit'));
 			}
 		}
 	}
@@ -79,6 +83,15 @@ class CFS_Options extends Custom_Field_Suite
 		echo '<h2>'.$page->post_title.'</h2>';
 		echo $cfs->form($item);
 		echo '</div>';
+	}
+
+	public function install()
+	{
+		wp_insert_post(array(
+			'post_name' => 'options',
+			'post_title' => 'Options',
+			'post_type' => 'cfs-options',
+			'post_status' => 'publish'));
 	}
 
 	/**
