@@ -1,6 +1,24 @@
 <?php
 /*
 Plugin Name: Custom Field Suite Options Pages
+Plugin URI: https://github.com/vanpattenmedia/custom-field-suite-options-pages
+Description: Create centralized option pages utilizing the Custom Field Suite
+Version: 0.1
+Author: Van Patten Media Inc.
+Author URI: https://www.vanpattenmedia.com/
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
 require_once(plugin_dir_path(__FILE__) . '../custom-field-suite/cfs.php');
@@ -11,14 +29,19 @@ class CFS_Options extends Custom_Field_Suite
 
 	public $version = '0.1';
 
-	public function __construct()
+    /**
+     * Constructor
+     */
+   	public function __construct()
 	{
 		register_activation_hook(__FILE__, array($this, 'install'));
 		add_action('init', array($this, 'init'));
-		add_action('init', array($this, 'check_for_updates'));
 		add_action('admin_menu', array($this, 'create_menu'));
 	}
 
+    /**
+     * Fire up CFSOP
+     */
 	public function init()
 	{
 		$this->dir = dirname( __FILE__ );
@@ -57,6 +80,10 @@ class CFS_Options extends Custom_Field_Suite
 		}	
 	}
 
+	/**
+	 * Create CFS Options Menu
+	 * @return void
+	 */
 	public function create_menu()
 	{
 		add_menu_page('CFS Options','CFS Options','manage_options','cfs-options','cfs_global', '',80); //add url to icon in empty spot
@@ -97,13 +124,13 @@ class CFS_Options extends Custom_Field_Suite
 		echo '</div>';
 	}
 
+	/**
+	 * Create initial options page during plugin activation.
+	 * @return void
+	 */
 	public function install()
 	{
-		wp_insert_post(array(
-			'post_name' => 'options',
-			'post_title' => 'Options',
-			'post_type' => 'cfs-options',
-			'post_status' => 'publish'));
+		$this->add_page('Options','options');
 	}
 
 	/**
@@ -151,10 +178,15 @@ class CFS_Options extends Custom_Field_Suite
 	}
 
 
-	function cfs_options($title='options')
+	/**
+	 * Get the Page ID of the options page using the title or slug
+	 * @param  string $title
+	 * @return integer The page ID of the options page.
+	 */
+	function cfs_options($searchfor='options')
 	{
-		$page = get_page_by_title($title, 'OBJECT', 'cfs-options');
-		$slug = get_page_by_path($title, 'OBJECT', 'cfs-options');
+		$page = get_page_by_title($searchfor, 'OBJECT', 'cfs-options');
+		$slug = get_page_by_path($searchfor, 'OBJECT', 'cfs-options');
 		if($page !== null)
 		{
 			return $page->ID;
@@ -165,6 +197,13 @@ class CFS_Options extends Custom_Field_Suite
 		}
 	}
 
+	/**
+	 * Render the field from the options page.
+	 * @param  string|boolean $field_name The name of the field
+	 * @param  string  $options_page The slug or title of the options page
+	 * @param  array   $options
+	 * @return mixed
+	 */
 	public function get($field_name = false, $options_page = 'options', $options = array())
 	{
 
@@ -173,14 +212,13 @@ class CFS_Options extends Custom_Field_Suite
 		return parent::get($field_name, $post_id, $options);
 	}
 
+    /**
+     * Make sure that $cfsop exists for template parts
+     * @since 1.8.8
+     */
     function parse_query( $wp_query ) {
         $wp_query->query_vars['cfsop'] = $this;
     }
-
-	public function check_for_updates()
-	{
-
-	}
 
 }
 
